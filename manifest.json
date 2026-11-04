@@ -30,12 +30,10 @@
   "icons": {
     "512": "icons/igdl2.png"
   },
-  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAs9OUiuwNv6DlAJNdwbowT6T+fcHHPQbI4nmWoyoiYDtGAqgo7T6mgP29DbI69bzXJUJmmJuXefUDmdP8s1bFWgxX8RMIISPDuGQAACD3LvhAq7YQSwV8PHZsev2yDQPdQW2iI4h+4kAXRLOwFvV+HAkKW+eMuJEpoodhTfTMc4xdklzlmViyjoA9bhRggVMJ9tX/eHSWHQ2g8j/83dcuADrvXJL8HcO7a+d+/FLNXUpPOzkNlWFiWr6U+soyhMBuGjYHw+l+0Mx20zbo/z1wj5Kghpvo6cORu8RH0AA57+3pB0z0tiDYD9VJVL4I5NLw0xCHWQM0GV+5LKrjEBP+hwIDAQAB",
   "manifest_version": 3,
   "name": "Turbo Downloader for Instagram",
   "options_page": "options.html",
   "permissions": ["storage"],
-  "update_url": "https://clients2.google.com/service/update2/crx",
   "version": "4.12.16",
   "web_accessible_resources": [
     {

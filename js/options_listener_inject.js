@@ -1,31 +1,4 @@
-!(function () {
-  try {
-    var e =
-        "undefined" != typeof window
-          ? window
-          : "undefined" != typeof global
-            ? global
-            : "undefined" != typeof self
-              ? self
-              : {},
-      r = new Error().stack;
-    r &&
-      ((e._sentryDebugIds = e._sentryDebugIds || {}),
-      (e._sentryDebugIds[r] = "ecf403f0-8db9-4e3d-9274-8f20f018d2d2"),
-      (e._sentryDebugIdIdentifier =
-        "sentry-dbid-ecf403f0-8db9-4e3d-9274-8f20f018d2d2"));
-  } catch (e) {}
-})();
-var _global =
-  "undefined" != typeof window
-    ? window
-    : "undefined" != typeof global
-      ? global
-      : "undefined" != typeof self
-        ? self
-        : {};
-((_global.SENTRY_RELEASE = { id: "2355ac7aea3ec4f8c529032b6c317c6bbb252cc2" }),
-  (() => {
+(() => {
     var e = {
         150: function (e, r) {
           var s, n;
@@ -632,5 +605,5 @@ var _global =
             })());
         }));
     })();
-  })());
+  })();
 //# sourceMappingURL=options_listener_inject.js.map

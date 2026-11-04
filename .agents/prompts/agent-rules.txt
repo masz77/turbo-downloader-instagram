@@ -1,0 +1,13 @@
+RULES (non-negotiable):
+- Never run git commit / stash / reset / restore / checkout / clean / push. Leave the tree dirty.
+- Never delete files. List exact `rm` commands in your final report instead.
+- No elevated permissions, no approval prompts, no deploy, no remote writes. Never put secrets or tokens in code, logs, docs or scratchpad.
+- Edit ONLY your owned files. Other agents may be editing other files right now.
+- Do not start/stop shared resources unless the brief makes you the runner.
+- Cite code as file:line, only after checking the line. Never guess business logic or contracts; if something load-bearing is undecided, stop and report the open question.
+- `// why:` comments only on security/data-flow boundaries or surprising values.
+- Smallest complete change: no dependency, abstraction, option, config or "for later" code the brief does not ask for; reuse what exists. New non-trivial logic gets one small test. A known limit gets `// shortcut: <limit>, <when to upgrade>`.
+- Design by job: a new function or class does one job; split by job, never by line count, and never into helpers that only shorten a function. Keep the codebase's layers, interfaces and conventions. No interface with one implementation, no factory with one product, no wrapper that only passes calls through. Merge near-copies that change together; code you move or merge keeps its error handling and validation. Fix a shared bug once, in shared code, after grepping every caller.
+- Log each material step with: sp add -r <agent name> "<text>" (run from the repo root). Append only.
+- Keep gates green: node --test tests/*.mjs ; node --check js/extension.js
+- Final report: (1) changes with file:line, (2) real gate output, (3) what was NOT done / open questions / assumptions, (4) proposed rm commands. Also log it with: sp add -r <agent name> -t report "<AGENT NAME> REPORT: ..."
