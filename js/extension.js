@@ -13580,7 +13580,9 @@ var _global =
               a =
                 "complete" === e.type
                   ? "Download complete."
-                  : `${t}... ` +
+                  : "fetch" === e.type && 0 === e.total
+                    ? `${t}... ${r} found`
+                    : `${t}... ` +
                     ("compression" === e.type || 0 === e.total
                       ? ""
                       : `${r.toLocaleString()}/${o.toLocaleString()}`) +
@@ -13612,7 +13614,8 @@ var _global =
               i && ((t.innerText = i), t.style.setProperty("display", "block"));
               const r = this.progressElement.querySelector(".profile-picture");
               e.account &&
-                (r.src !== e.account.profilePicUrl &&
+                (e.account.profilePicUrl &&
+                  r.src !== e.account.profilePicUrl &&
                   (r.src = e.account.profilePicUrl),
                 r.style.setProperty("display", "inline-block"));
             }
@@ -13977,13 +13980,12 @@ var _global =
       Ve = Ge = e([_], Ve);
       let Xe = (Ke = class {
         static getWwwClaim() {
-          const e =
-            sessionStorage.getItem("__ig_www_claim") ||
-            sessionStorage.getItem("www-claim-v2");
+          const t = sessionStorage.getItem("__ig_www_claim"),
+            e = t && "null" !== t ? t : sessionStorage.getItem("www-claim-v2");
           return (
             De((t) => {
               (t.setExtra("hasWwwClaim", null != e),
-                t.setExtra("hasNonZeroWwwClaim", e.length > 1));
+                t.setExtra("hasNonZeroWwwClaim", null != e && e.length > 1));
             }),
             e
           );
@@ -14205,22 +14207,31 @@ var _global =
               const t = location.href.match(/\.\w+?\/(.+?)\//);
               t && (e = t[1]);
             }
-            const t = Xe.getHeaders();
-            if (!t)
+            if (!sessionStorage.getItem("__ig_has_require"))
               return void (yield s.createAndAdd(
-                "Could not find account. Are you signed in?",
+                "Could not load posts. Reload the page and try again.",
                 "warn",
               ));
-            const n = yield Ze.getAccount(e, t.appId, t.wwwClaim);
-            if (!n)
+            let p;
+            try {
+              p = yield Ze.loadProfilePage(e);
+            } catch (t) {
               return (
-                Te(new Error("Could not find account.")),
+                Te(t),
                 void (yield s.createAndAdd(
-                  "Could not find account. Are you signed in?",
+                  `Could not load posts for ${e}: ${t.message}`,
                   "warn",
                 ))
               );
-            const r = n.totalPosts,
+            }
+            const n = {
+                username: e,
+                profilePicUrl: p.nodes.length
+                  ? p.nodes[0].user.profile_pic_url
+                  : void 0,
+                totalPosts: 0,
+              },
+              r = n.totalPosts,
               i = [];
             let a,
               l = 0;
@@ -14294,7 +14305,6 @@ var _global =
                   ));
             }
             const u = new Ne();
-            let c;
             u.updateProgress({
               completed: l,
               total: r,
@@ -14303,21 +14313,40 @@ var _global =
               account: n,
               type: "fetch",
             });
-            do {
-              let o = 0;
-              (([c, o] = yield Ze.appendToItems(e, t.appId, t.wwwClaim, c, i)),
-                (l += o),
-                i.length,
-                u.updateProgress({
-                  completed: l,
-                  total: r,
-                  isFirst: !1,
-                  isLast: !1,
-                  account: n,
-                  type: "fetch",
-                }),
-                yield new Promise((e) => setTimeout(e, 1500)));
-            } while (void 0 !== c);
+            for (;;) {
+              for (let o of p.nodes)
+                Je.getAllDownloadableMediaItems(o).forEach((e) => i.push(e));
+              l += p.nodes.length;
+              u.updateProgress({
+                completed: l,
+                total: r,
+                isFirst: !1,
+                isLast: !1,
+                account: n,
+                type: "fetch",
+              });
+              if (!p.pageInfo.hasNextPage) break;
+              yield new Promise((e) => setTimeout(e, 1500));
+              try {
+                p = yield Ze.loadProfilePage(e, p.pageInfo.endCursor);
+              } catch (t) {
+                return (
+                  Te(t),
+                  void (yield u.updateProgress({
+                    completed: l,
+                    total: r,
+                    isFirst: !1,
+                    isLast: !0,
+                    account: n,
+                    type: "fetch",
+                  })),
+                  void (yield s.createAndAdd(
+                    `Could not load posts for ${e}: ${t.message}`,
+                    "warn",
+                  ))
+                );
+              }
+            }
             u.updateProgress({
               completed: l,
               total: r,
@@ -14335,38 +14364,16 @@ var _global =
             (yield o.runtime.sendMessage(d), yield Oe(i, n, void 0, a));
           });
         }
-        static getAccount(e, n, r) {
-          return t(this, void 0, void 0, function* () {
-            try {
-              const t = { headers: { "x-ig-app-id": n, "x-ig-www-claim": r } },
-                o = yield fetch(
-                  `https://www.instagram.com/api/v1/users/web_profile_info/?username=${e}`,
-                  t,
-                ),
-                i = yield o.json();
-              return {
-                username: i.data.user.username,
-                profilePicUrl: i.data.user.profile_pic_url,
-                totalPosts: i.data.user.edge_owner_to_timeline_media.count || 0,
-              };
-            } catch (e) {
-              Te(e);
-            }
-          });
-        }
-        static appendToItems(e, n, r, o, i) {
-          return t(this, void 0, void 0, function* () {
-            const t = { headers: { "x-ig-app-id": n, "x-ig-www-claim": r } },
-              a = yield fetch(
-                `https://www.instagram.com/api/v1/feed/user/${e}/username/?count=12${o ? "&max_id=" + o : ""}`,
-                t,
-              ),
-              s = yield a.json();
-            for (let e of s.items)
-              Je.getAllDownloadableMediaItems(e).forEach((e) => i.push(e));
-            return s.more_available
-              ? [s.next_max_id, s.items.length]
-              : [void 0, 0];
+        static loadProfilePage(e, n) {
+          return new Promise((resolve, reject) => {
+            const r = new MessageChannel();
+            r.port1.onmessage = (t) =>
+              t.data.error ? reject(new Error(t.data.error)) : resolve(t.data);
+            window.postMessage(
+              { procedure: "loadProfilePosts", username: e, after: n },
+              "https://www.instagram.com",
+              [r.port2],
+            );
           });
         }
         createDownloadButton() {

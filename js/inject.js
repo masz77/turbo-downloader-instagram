@@ -102,18 +102,79 @@ var _global =
                   }
                   return void e.ports[0].postMessage(i);
                 }
+                if ("loadProfilePosts" === t.procedure) {
+                  const r = (m) => e.ports[0].postMessage(m);
+                  if (!/^[\w.]{1,30}$/.test(t.username))
+                    return void r({ error: "Invalid username" });
+                  try {
+                    const n = {
+                      data: {
+                        count: 12,
+                        include_reel_media_seen_timestamp: !0,
+                        include_relationship_info: !0,
+                        latest_besties_reel_media: !0,
+                        latest_reel_media: !0,
+                      },
+                      username: t.username,
+                      __relay_internal__pv__PolarisMultiCaptionCarouselEnabledrelayprovider:
+                        !0,
+                      __relay_internal__pv__PolarisShortDramaEnabledrelayprovider:
+                        !0,
+                      __relay_internal__pv__PolarisSEOIsCrawlerrelayprovider: !1,
+                      __relay_internal__pv__PolarisThreadsStyleCommentsEnabledrelayprovider:
+                        !1,
+                      __relay_internal__pv__PolarisReelsRecoDebugOverlayEnabledrelayprovider:
+                        !1,
+                    };
+                    t.after && ((n.first = 12), (n.after = t.after));
+                    // why: raw execute, not fetchQuery: fragment-masked data hides the fields the extension reads.
+                    const i = await window
+                      .require("PolarisRelayEnvironment")
+                      .getNetwork()
+                      .execute(
+                        window.require("PolarisProfilePostsQuery.graphql")
+                          .params,
+                        n,
+                        {},
+                      )
+                      .toPromise(),
+                      a =
+                        i &&
+                        i.data &&
+                        i.data
+                          .xdt_api__v1__feed__user_timeline_graphql_connection;
+                    if (!a || !a.page_info)
+                      return void r({
+                        error:
+                          (i && i.errors && i.errors[0] && i.errors[0].message) ||
+                          "Unexpected response",
+                      });
+                    return void r({
+                      nodes: a.edges.map((e) => e.node),
+                      pageInfo: {
+                        endCursor: a.page_info.end_cursor,
+                        hasNextPage: a.page_info.has_next_page,
+                      },
+                    });
+                  } catch (e) {
+                    return void r({ error: (e && e.message) || "Request failed" });
+                  }
+                }
                 (console.log(t), e.ports[0].postMessage(void 0));
               }
             }),
             (() => {
+              let claimTries = 0;
               function e() {
+                // shortcut: gives up after ~30 s, raise if claim loads later than that
                 try {
-                  sessionStorage.setItem(
-                    "__ig_www_claim",
-                    window.require("PolarisWWWClaim").getWWWClaim(),
-                  );
+                  const c = window.require("PolarisWWWClaim").getWWWClaim();
+                  // why: a null claim stored as "null" is truthy and hides the www-claim-v2 fallback.
+                  if (c && "null" !== c)
+                    sessionStorage.setItem("__ig_www_claim", c);
+                  else claimTries++ < 300 && setTimeout(e, 100);
                 } catch (t) {
-                  setTimeout(e, 100);
+                  claimTries++ < 300 && setTimeout(e, 100);
                 }
               }
               function t(e) {
