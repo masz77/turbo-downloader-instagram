@@ -47,8 +47,3 @@ The extension ID differs from the original. Saved options and the download-folde
 ```bash
 node --test tests/inject-profile-posts.test.mjs
 ```
-
-## Known limits
-- Not tested in a real browser with real downloads. Check before relying on it.
-- `web_accessible_resources` still exposes icons to all sites.
-- No build system or source repo. Edits are made directly on the bundled files.
